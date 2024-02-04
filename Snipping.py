@@ -1,19 +1,33 @@
 import tkinter as tk
 from datetime import datetime
 from PIL import ImageGrab, ImageTk
+import pytesseract
 
 class SnippingTool:
     def __init__(self, master):
         self.master = master
         self.master.title("Snipping Tool")
 
-        self.new_button = tk.Button(master, text="New", command=self.start_snipping)
-        self.new_button.pack(pady=10)
+        self.frame_buttons = tk.Frame(master)
+        self.frame_buttons.pack(side=tk.TOP, fill=tk.X)
+
+        self.button_container = tk.Frame(self.frame_buttons)
+        self.button_container.pack(side=tk.TOP, pady=10)
+
+        self.new_button = tk.Button(self.button_container, text="New", command=self.start_snipping)
+        self.new_button.pack(side=tk.LEFT, padx=5, fill=tk.BOTH, expand=True)
+
+        self.to_text_button = tk.Button(self.button_container, text="ToText", command=self.convert_to_text, state=tk.DISABLED)
+        self.to_text_button.pack(side=tk.LEFT, padx=5, fill=tk.BOTH, expand=True)
 
         self.screenshot_label = tk.Label(master)
         self.screenshot_label.pack()
 
         self.snip_window = None
+        self.screenshot = None
+
+        # Hide the ToText button initially
+        self.to_text_button.pack_forget()
 
     def start_snipping(self):
         if self.snip_window:
@@ -66,6 +80,8 @@ class SnippingTool:
         self.save_screenshot(screenshot)
 
         self.restore_main_window()
+        self.to_text_button.config(state=tk.NORMAL)  # Enable ToText button
+        self.to_text_button.pack(side=tk.LEFT, padx=5, fill=tk.BOTH, expand=True)  # Show the ToText button
 
     def save_screenshot(self, screenshot):
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -84,9 +100,19 @@ class SnippingTool:
         self.master.wm_attributes("-alpha", 1.0)
         self.master.deiconify()
 
+    def convert_to_text(self):
+        if self.screenshot:
+            text = self.image_to_text(self.screenshot)
+            print("Text from image:\n", text)
+
+    def image_to_text(self, image):
+        text = pytesseract.image_to_string(image)
+        return text
+
 def main():
     root = tk.Tk()
     app = SnippingTool(root)
+    root.geometry("+%d+%d" % ((root.winfo_screenwidth() - root.winfo_reqwidth()) // 2, 0))
     root.mainloop()
 
 if __name__ == "__main__":
