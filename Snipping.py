@@ -37,18 +37,24 @@ class SnippingTool:
         self.transparent_main_window()  # Make the main window transparent
 
         self.snip_window = tk.Toplevel(self.master)
+        self.snip_window.attributes('-fullscreen', True)  # Set the new window to fullscreen
         self.setup_snip_canvas()
 
     def setup_snip_canvas(self):
         self.snip_window.wm_attributes("-alpha", 0.4)  # Set transparency for the snipping window
+
+        # Get the screen dimensions
+        screen_width = self.snip_window.winfo_screenwidth()
+        screen_height = self.snip_window.winfo_screenheight()
+
+        # Create a canvas covering the entire screen
         self.snip_canvas = tk.Canvas(self.snip_window, cursor="cross")
 
         self.screenshot = ImageGrab.grab()
         image_tk = ImageTk.PhotoImage(self.screenshot)
 
         self.snip_canvas.create_image(0, 0, anchor="nw", image=image_tk)
-        self.snip_canvas.config(width=self.screenshot.width, height=self.screenshot.height)
-        self.snip_canvas.pack()
+        self.snip_canvas.pack(fill=tk.BOTH, expand=True)
 
         self.snip_canvas.bind("<ButtonPress-1>", self.on_press)
         self.snip_canvas.bind("<B1-Motion>", self.on_drag)
@@ -67,13 +73,14 @@ class SnippingTool:
         self.snip_canvas.coords(self.rect, self.start_x, self.start_y, self.end_x, self.end_y)
 
     def on_release(self, event):
-        self.end_x, self.end_y = event.x, event.y
+        canvas_width = self.snip_canvas.winfo_width()
+        canvas_height = self.snip_canvas.winfo_height()
+        self.start_x, self.start_y = self.start_x*(self.screenshot.width/canvas_width), self.start_y*(self.screenshot.height/canvas_height)
+        self.end_x, self.end_y = event.x*(self.screenshot.width/canvas_width), event.y*(self.screenshot.height/canvas_height)
+
         self.snip_canvas.destroy()
 
-        win_x = self.snip_window.winfo_rootx()
-        win_y = self.snip_window.winfo_rooty()
-
-        x, y = min(self.start_x, self.end_x) + win_x, min(self.start_y, self.end_y) + win_y
+        x, y = min(self.start_x, self.end_x) , min(self.start_y, self.end_y)
         width, height = abs(self.start_x - self.end_x), abs(self.start_y - self.end_y)
 
         screenshot = self.screenshot.crop((x, y, x + width, y + height))
@@ -112,6 +119,7 @@ class SnippingTool:
 
 def main():
     root = tk.Tk()
+    root.geometry("800x600")
     app = SnippingTool(root)
     root.geometry("+%d+%d" % ((root.winfo_screenwidth() - root.winfo_reqwidth()) // 2, 0))
     root.mainloop()
