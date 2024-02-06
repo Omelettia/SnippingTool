@@ -84,6 +84,7 @@ class SnippingTool:
         width, height = abs(self.start_x - self.end_x), abs(self.start_y - self.end_y)
 
         screenshot = self.screenshot.crop((x, y, x + width, y + height))
+        self.screenshot = screenshot
         self.save_screenshot(screenshot)
 
         self.restore_main_window()
