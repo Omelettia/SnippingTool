@@ -4,7 +4,7 @@ from PIL import ImageGrab, ImageTk
 import pytesseract
 
 class SnippingTool:
-    def __init__(self, master):
+    def __init__(self, master, text_area=None):
         self.master = master
         self.master.title("Snipping Tool")
 
@@ -26,8 +26,14 @@ class SnippingTool:
         self.snip_window = None
         self.screenshot = None
 
+        self.text = ""
+        self.text_area = text_area
+
         # Hide the ToText button initially
         self.to_text_button.pack_forget()
+
+    def get_captured_text(self):
+        return self.text
 
     def start_snipping(self):
         if self.snip_window:
@@ -110,8 +116,9 @@ class SnippingTool:
 
     def convert_to_text(self):
         if self.screenshot:
-            text = self.image_to_text(self.screenshot)
-            print("Text from image:\n", text)
+            self.text = self.image_to_text(self.screenshot)
+            print("Text from image:\n", self.text)
+            self.text_area.insert(tk.END, self.text)
 
     def image_to_text(self, image):
         pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
