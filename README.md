@@ -1,1 +1,1 @@
-# JapaneseWordProcessor
+# SnippingTool
